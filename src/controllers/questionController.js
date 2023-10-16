@@ -260,7 +260,7 @@ const createQuestions = async (req, res, next) => {
         const newQuestions = preguntas.filter(question => {
             return !existQuestions.some(existQuestion => existQuestion.texto_pregunta === question.texto_pregunta);
         });
-        
+
 
         // eliminamos los valores nulos del array (repetidos)
         const filteredBDQuestions = newQuestions.filter(Boolean);
@@ -402,10 +402,8 @@ const actualizarPregunta = async (req, res, next) => {
             // Subimos la nueva imagen
             if (pregunta.imagen === null){
                 result = await uploadImage(req.file.path, imageName);
-                console.log('Esta creando');
             }else{
-                result = await updateFile(req.file.path, JSON.parse(pregunta.imagen).public_id);
-                console.log('Esta actualizando');
+                result = await updateFile(req.file.path, pregunta.imagen.public_id);
             }
 
             // Definimos los atributos a almacenar
