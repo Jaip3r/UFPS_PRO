@@ -321,7 +321,7 @@ const getQuestionById = async (req, res, next) => {
         console.log("4", pregunta.estado);
         console.log("5", pregunta.semestre);
         console.log("6", pregunta.categoria.nombre)
-        console.log("7", JSON.parse(pregunta.imagen).url);
+        //console.log("7", JSON.parse(pregunta.imagen).url);
         
 
         // Respondemos al usuario
@@ -331,8 +331,7 @@ const getQuestionById = async (req, res, next) => {
             respuesta: pregunta.respuesta,
             estado: pregunta.estado,
             semestre: pregunta.semestre,
-            categoria: pregunta.categoria.nombre,
-            imageFile: pregunta.imagen !== null ? JSON.parse(pregunta.imagen).url : ''
+            categoria: pregunta.categoria.nombre
         });
 
     }catch(err){
