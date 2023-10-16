@@ -291,7 +291,6 @@ const getQuestionById = async (req, res, next) => {
 
     // Obtenemos el id de la pregunta a especificar
     const {id} = req.params;
-    console.log(id);
 
     try{
 
@@ -302,6 +301,7 @@ const getQuestionById = async (req, res, next) => {
                 attributes: ['nombre']
             }
         });
+        console.log(pregunta);
 
         if(!pregunta){
             return res.status(400).json({error: 'No se encuentra ninguna pregunta con el id especificado'});
@@ -309,20 +309,19 @@ const getQuestionById = async (req, res, next) => {
 
         // Formateamos las opciones
         const opciones = JSON.parse(pregunta.opciones);
+        console.log(opciones);
 
         const formatedOptions = opciones.map(opcion => {
             if(typeof opcion === 'number') return opcion
             return opcion.replace(/\n/g, " ")
         });
-
-        // Formateamos la respuesta
-        const response = pregunta.respuesta.replace(/\n/g, " ");
+        console.log(formatedOptions);
 
         // Respondemos al usuario
         res.status(200).json({
             enunciado: pregunta.texto_pregunta,
             opciones: formatedOptions,
-            respuesta: response,
+            respuesta: pregunta.respuesta,
             estado: pregunta.estado,
             semestre: pregunta.semestre,
             categoria: pregunta.categoria.nombre,
