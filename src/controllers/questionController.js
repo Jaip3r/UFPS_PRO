@@ -4,7 +4,7 @@ import XLSX from "xlsx";
 
 // Funciones de utilidad
 import validateSeqOptions from '../util/seqOptions.js';
-import { validateAnswers, removeQuestionsRepeat } from '../util/verifyAnswers.js';
+import { validateAnswers, removeQuestionsRepeat, posicionEnAlfabeto } from '../util/verifyAnswers.js';
 import { uploadImage, updateFile } from '../libs/cloudinary.js';
 
 
@@ -251,15 +251,16 @@ const createQuestions = async (req, res, next) => {
 
         
         // Filtramos las preguntas para eliminar las que ya existen en la BD
-        const newQuestions = await Promise.all(
-            questions.map(async question => {
-                const pregunta_limpia = await question
-                const exists = await Pregunta.findOne({
-                    where: { texto_pregunta: pregunta_limpia.texto_pregunta }
-                });
-                return exists ? null : question;
-            })
-        );
+        const preguntas = await Promise.all(questions);
+
+        const existQuestions = await Pregunta.findAll({
+            attributes: ['texto_pregunta']
+        })
+
+        const newQuestions = preguntas.filter(question => {
+            return !existQuestions.some(existQuestion => existQuestion.texto_pregunta === question.texto_pregunta);
+        });
+        
 
         // eliminamos los valores nulos del array (repetidos)
         const filteredBDQuestions = newQuestions.filter(Boolean);
@@ -371,7 +372,7 @@ const actualizarPregunta = async (req, res, next) => {
         }
 
         // Validamos que la respuesta se encuentre entre las opciones disponibles
-        if(!new_options.includes(respuesta.toUpperCase())) return res.status(400).json({ error: 'La respuesta debe coincidir con alguna de las opciones disponibles' });
+        if(posicionEnAlfabeto(respuesta) > new_options.length) return res.status(400).json({ error: 'La respuesta debe coincidir con alguna de las opciones disponibles' });
 
         // Validamos que ninguna de las respuestas se repita
         if (!validateAnswers(new_options)) return res.status(400).json({ error: 'Ninguna de las opciones de respuesta puede repetirse' });
@@ -386,7 +387,7 @@ const actualizarPregunta = async (req, res, next) => {
             respuesta,
             categoria_id
         });
-        
+
 
         // Si existe una imagen, la actualizamos
         if(imagen){
