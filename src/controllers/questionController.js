@@ -310,18 +310,10 @@ const getQuestionById = async (req, res, next) => {
         // Formateamos las opciones
         const opciones = JSON.parse(pregunta.opciones);
 
-
         const formatedOptions = opciones.map(opcion => {
             if(typeof opcion === 'number') return opcion
             return opcion.replace(/\n/g, " ")
         });
-        console.log("1", pregunta.texto_pregunta);
-        console.log("2", formatedOptions);
-        console.log("3", pregunta.respuesta);
-        console.log("4", pregunta.estado);
-        console.log("5", pregunta.semestre);
-        console.log("6", pregunta.categoria.nombre)
-        console.log("7", typeof pregunta.imagen);
         
 
         // Respondemos al usuario
@@ -331,12 +323,12 @@ const getQuestionById = async (req, res, next) => {
             respuesta: pregunta.respuesta,
             estado: pregunta.estado,
             semestre: pregunta.semestre,
-            categoria: pregunta.categoria.nombre
+            categoria: pregunta.categoria.nombre,
+            imageFile: pregunta.imagen !== null ? pregunta.imagen.url : ''
         });
 
     }catch(err){
-        console.log('HOLLAAAAAAAAAAAAAAAAAAAAAAAAA');
-        next(`Ocurrio un problema al obtener los datos de la pregunta especificada: ${err}`);
+        next(`Ocurrio un problema al obtener los datos de la pregunta especificada: ${err.message}`);
     }
 
 };
