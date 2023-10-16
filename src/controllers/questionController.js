@@ -370,6 +370,13 @@ const actualizarPregunta = async (req, res, next) => {
             return res.status(400).json({error: "El id de categoria proporcionado no corresponde a ninguna existente"});
         }
 
+        // Validamos que la respuesta se encuentre entre las opciones disponibles
+        if(!new_options.includes(respuesta.toUpperCase())) return res.status(400).json({ error: 'La respuesta debe coincidir con alguna de las opciones disponibles' });
+
+        // Validamos que ninguna de las respuestas se repita
+        if (!validateAnswers(new_options)) return res.status(400).json({ error: 'Ninguna de las opciones de respuesta puede repetirse' });
+
+
         // Actualizamos la pregunta
         await pregunta.update({
             texto_pregunta,
@@ -379,6 +386,7 @@ const actualizarPregunta = async (req, res, next) => {
             respuesta,
             categoria_id
         });
+        
 
         // Si existe una imagen, la actualizamos
         if(imagen){

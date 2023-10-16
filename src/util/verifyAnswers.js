@@ -1,4 +1,9 @@
 
+/**
+ * Función encargada de de validar que cada una de las respuestas de una preguntas sean unicas
+ * @param {object} answers 
+ * @returns boolean
+ */
 export function validateAnswers(answers) {
 
     let visto = {};
@@ -16,6 +21,12 @@ export function validateAnswers(answers) {
 
 }
 
+
+/**
+ * 
+ * @param {object} questions 
+ * @returns array with all unique answers
+ */
 export function removeQuestionsRepeat(questions) {
 
     let visto = {};
