@@ -329,6 +329,8 @@ const getQuestionById = async (req, res, next) => {
         });
 
     }catch(err){
+        console.log('HOLLAAAAAAAAAAAAAAAAAAAAAAAAA');
+        console.log(err);
         next(`Ocurrio un problema al obtener los datos de la pregunta especificada: ${err.message}`);
     }
 
