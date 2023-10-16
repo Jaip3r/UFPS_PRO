@@ -291,6 +291,7 @@ const getQuestionById = async (req, res, next) => {
 
     // Obtenemos el id de la pregunta a especificar
     const {id} = req.params;
+    console.log(id);
 
     try{
 
