@@ -32,7 +32,7 @@ export function validarFechaCoherente(fecha_inicio, fecha_fin) {
         return 'La fecha de fin de la convocatoria no es coherente';
     }
 
-    if(fecha_inicio_format.isSameOrAfter(fecha_fin_format)) {
+    if(!fecha_inicio_format.isBefore(fecha_fin_format)) {
         return 'La fecha de inicio de la convocatoria no puede ser mayor o igual que la de fin';
     }
   

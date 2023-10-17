@@ -124,7 +124,8 @@ const createConvocatoria = async (req, res, next) => {
                 prueba_id
             }, {transaction: t});
 
-            const inscripcionesData = [];
+            const newInscripcionesData = [];
+            const existInscripcionesData = [];
             const newStudents = [];
 
             // Registramos los datos de los usuarios
@@ -198,7 +199,7 @@ const createConvocatoria = async (req, res, next) => {
                     });
 
                     // Agregamos la inscripción a nuestro array de inscripciones
-                    inscripcionesData.push({
+                    existInscripcionesData.push({
                         fecha_inscripcion: new Date(dayjs().format('YYYY-MM-DD HH:mm')),
                         usuario_id: userExist.id,
                         convocatoria_id: convocatoria.id
@@ -234,7 +235,7 @@ const createConvocatoria = async (req, res, next) => {
                     });
 
                     // Agregamos la inscripción a nuestro array de inscripciones
-                    inscripcionesData.push({
+                    newInscripcionesData.push({
                         fecha_inscripcion: new Date(dayjs().format('YYYY-MM-DD HH:mm')),
                         usuario_id: null,
                         convocatoria_id: convocatoria.id
@@ -262,11 +263,14 @@ const createConvocatoria = async (req, res, next) => {
 
             // Actualizamos el valor de las inscripciones a cada uno de los usuarios registrados
             for (let i = 0; i < created_students.length; i++) {
-                inscripcionesData[i].usuario_id = created_students[i].id;
+                newInscripcionesData[i].usuario_id = created_students[i].id;
             }
 
             // Creamos las inscripciones
-            await Inscripcion.bulkCreate(inscripcionesData, { transaction: t });
+            const inscripciones = await Promise.all([
+                Inscripcion.bulkCreate(existInscripcionesData, { transaction: t }),
+                Inscripcion.bulkCreate(newInscripcionesData, { transaction: t })
+            ]);
 
             // Enviamos correo de registro para cada uno de los usuarios registrados
             for (let i = 0; i < created_students.length; i++) {
@@ -278,11 +282,11 @@ const createConvocatoria = async (req, res, next) => {
                 
             }
 
-            return inscripcionesData;
+            return inscripciones
             
         }); 
 
-        res.status(200).json({ message: `Se han registrado y/o notificado a ${result.length} estudiantes satisfactoriamente para la convocatoria` });
+        res.status(200).json({ message: `Se han inscrito ${result.length} estudiantes satisfactoriamente para la convocatoria` });
 
     } catch (err) {
         console.log(err);
