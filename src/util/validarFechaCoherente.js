@@ -1,4 +1,4 @@
-import moment from 'moment-timezone';
+import dayjs from 'dayjs';
 
 /**
  * Función encargada de validar la coherencia de las fechas manejadas por el software
@@ -10,13 +10,12 @@ export function validarFechaCoherente(fecha_inicio, fecha_fin) {
 
 
     // Zona horaria a trabajar
-    const zonaHoraria = 'America/Bogota';
     const format = 'DD-MM-YYYY HH:mm';
 
     // Fechas a comparar
-    const fechaActual = moment().tz(zonaHoraria, format);
-    const fecha_inicio_format = moment(fecha_inicio, format);
-    const fecha_fin_format = moment(fecha_fin, format);
+    const fechaActual = dayjs();
+    const fecha_inicio_format = dayjs(fecha_inicio, format);
+    const fecha_fin_format = dayjs(fecha_fin, format);
 
     console.log('Fecha inicio', fecha_inicio);
     console.log('Fecha Fin', fecha_fin);
