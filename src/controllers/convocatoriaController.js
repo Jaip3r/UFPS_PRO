@@ -258,6 +258,7 @@ const createConvocatoria = async (req, res, next) => {
 
             // Registramos a los estudiantes nuevos
             const created_students = await Usuario.bulkCreate(secured_students, { returning: true, transaction: t });
+            console.log(created_students);
 
             // Actualizamos el valor de las inscripciones a cada uno de los usuarios registrados
             for (let i = 0; i < created_students.length; i++) {
