@@ -17,6 +17,10 @@ export function validarFechaCoherente(fecha_inicio, fecha_fin) {
     const fecha_inicio_format = moment.tz(fecha_inicio, zonaHoraria);
     const fecha_fin_format = moment.tz(fecha_fin, zonaHoraria);
 
+    console.log(fechaActual);
+    console.log(fecha_inicio_format);
+    console.log(fecha_fin_format);
+
     if (fecha_inicio_format.isBefore(fechaActual)) {
         return 'La fecha de inicio de la convocatoria no es coherente';
     }

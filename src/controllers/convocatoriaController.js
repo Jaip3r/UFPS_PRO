@@ -254,6 +254,7 @@ const createConvocatoria = async (req, res, next) => {
                 return rest;
 
             });
+            console.log(secured_students);
 
             // Registramos a los estudiantes nuevos
             const created_students = await Usuario.bulkCreate(secured_students, { returning: true, transaction: t });
@@ -283,6 +284,7 @@ const createConvocatoria = async (req, res, next) => {
         res.status(200).json({ message: `Se han registrado y/o notificado a ${result.length} estudiantes satisfactoriamente para la convocatoria` });
 
     } catch (err) {
+        console.log(err);
         next(new Error(`Ocurrio un problema al intentar crear la convocatoria: ${err.message}`));
     }
 
@@ -379,21 +381,15 @@ const presentarPrueba = async (req, res) => {
 
 /* --------- updateConvocatoria function -------------- */
 
-const updateConvocatoria = async (req, res) => {
+const updateConvocatoria = async (req, res, next) => {
+
+    //Obtenemos el id
+    const { id } = req.params;
+
+    // Obtenemos los datos a actualizar
+    const { nombre, prueba_id, descripcion, fecha_inicio, fecha_fin } = req.body;
 
     try {
-
-        //Obtenemos el id
-        const { id } = req.params;
-
-
-        // Verificamos el id
-        const regexNum = /^[0-9]+$/;
-
-        if (!regexNum.test(id)) {
-            return res.status(400).json({ error: 'id no valido' });
-        }
-
 
         // Obtenemos la convocatoria
         const convocatoria = await Convocatoria.findByPk(id);
@@ -402,22 +398,6 @@ const updateConvocatoria = async (req, res) => {
         if (!convocatoria) {
             return res.status(400).json({ error: 'No se encuentra ninguna convocatoria con el id especificado' });
         }
-
-
-        // Obtenemos los datos a actualizar
-        const { nombre, prueba_id, descripcion, fecha_inicio, fecha_fin } = req.body;
-
-        // Validamos los datos a actualizar
-        if (!nombre || !prueba_id || !descripcion || !fecha_inicio || !fecha_fin) {
-            return res.status(400).json({ error: 'Todos los campos son requeridos' });
-        }
-
-        const regexData = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/;
-
-        if (!regexData.test(nombre) || !regexNum.test(prueba_id)) {
-            return res.status(400).json({ error: 'La sintaxis de los datos no es correcta' });
-        }
-
 
         // Validamos que exista la prueba enlazada a la convocatoria
         const existPrueba = await Prueba.findByPk(prueba_id);
@@ -439,8 +419,8 @@ const updateConvocatoria = async (req, res) => {
         await convocatoria.update({
             nombre,
             descripcion,
-            fecha_inicio: new Date(fecha_inicio),
-            fecha_fin: new Date(fecha_fin),
+            fecha_inicio: new Date(dayjs(fecha_inicio).format('YYYY-MM-DD HH:mm')),
+            fecha_fin: new Date(dayjs(fecha_fin).format('YYYY-MM-DD HH:mm')),
             prueba_id
         })
 
