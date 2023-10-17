@@ -12,7 +12,7 @@ import logger from '../middlewares/logger.js';
  * @param {string} typeEmail 
  * @param {string} convocatoria_name 
  */
-const generateEmail = async (userName, userEmail, userPassword='', typeEmail, convocatoria_name) => {
+const generateEmail = async (userName, userEmail, userPassword, typeEmail, convocatoria_name) => {
 
     // Crear un objeto de configuración con las credenciales
     let config = {
@@ -67,8 +67,8 @@ const notification_response = (userName, convocatoria_name) => {
         body: {
             greeting: 'Cordial saludo',
             name: userName,
-            intro: `Te queremos comunicar que has sido seleccionado para participal de la convocatoria ${convocatoria_name} próxima a iniciarse`,
-            outro: "Favor ingresar a su apartado de usuario para más información",
+            intro: `Te queremos comunicar que has sido seleccionado para participal de la convocatoria: ${convocatoria_name}, próxima a iniciarse.`,
+            outro: "Favor ingresar a su apartado de usuario para más información.",
             signature: 'Atentamente, el equipo de desarrollo de ing. de sistemas'
         }
 
@@ -84,15 +84,15 @@ const register_response = (userName, userEmail, userPassword, convocatoria_name)
         body: {
             greeting: 'Cordial saludo',
             name: userName,
-            intro: `Te damos la bienvenida al simulador UFPS_PRO, has sido seleccionado para participar en la convocatoria
-            ${convocatoria_name} próxima a realizarse, a continuación te mostramos tus credenciales de acceso`,
+            intro: `Te damos la bienvenida al simulador UFPS_PRO, has sido seleccionado para participar en la convocatoria:
+            ${convocatoria_name}, próxima a realizarse, a continuación te mostramos tus credenciales de acceso.`,
             table: {
                 data: [{
                     email: userEmail,
                     password: userPassword
                 }]
             },
-            outro: "Una vez hayas iniciado sesión, es indispensable que cambies la contraseña ingresada a una de preferencia propia",
+            outro: "Una vez hayas iniciado sesión, es indispensable que cambies la contraseña ingresada a una de preferencia propia.",
             signature: 'Atentamente, el equipo de desarrollo de ing. de sistemas'
         }
 

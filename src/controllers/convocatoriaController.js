@@ -72,7 +72,7 @@ const getConvocatoriaById = async (req, res, next) => {
 const createConvocatoria = async (req, res, next) => {
 
     // Obtenemos los datos de la convocatoria
-    const { nombre, descripcion, fecha_inicio, fecha_fin, prueba_id } = req.body;
+    const { convocatoria_nombre, convocatoria_descripcion, fecha_inicio, fecha_fin, prueba_id } = req.body;
 
     try {
 
@@ -117,16 +117,18 @@ const createConvocatoria = async (req, res, next) => {
 
             // Creamos la convocatoria
             const convocatoria = await Convocatoria.create({
-                nombre,
-                descripcion,
+                nombre: convocatoria_nombre,
+                descripcion: convocatoria_descripcion,
                 fecha_inicio: new Date(dayjs(fecha_inicio).format('YYYY-MM-DD HH:mm')),
                 fecha_fin: new Date(dayjs(fecha_fin).format('YYYY-MM-DD HH:mm')),
                 prueba_id
             }, {transaction: t});
 
+            const inscripcionesData = [];
+            const newStudents = [];
 
             // Registramos los datos de los usuarios
-            const promiseStudents = dataExcel.map( async (itemFila) => {
+            for (const itemFila of dataExcel) {
 
                 // Validar las cabeceras del archivo
                 if (!itemFila['Nombre'] || !itemFila['Apellido'] || !itemFila['Codigo'] || !itemFila['Email']
@@ -195,92 +197,92 @@ const createConvocatoria = async (req, res, next) => {
                         }
                     });
 
-                    // Creamos la inscripción
-                    await Inscripcion.create({
+                    // Agregamos la inscripción a nuestro array de inscripciones
+                    inscripcionesData.push({
                         fecha_inscripcion: new Date(dayjs().format('YYYY-MM-DD HH:mm')),
                         usuario_id: userExist.id,
                         convocatoria_id: convocatoria.id
-                    }, {transaction: t});
+                    });
 
                     // Enviamos correo de notificacion
-                    await generateCorreo(`${nombre} ${apellido}`, email, 'Notificar', convocatoria.nombre);
+                    await generateCorreo(`${nombre} ${apellido}`, email, '', 'Notificar', convocatoria.nombre);
 
-                    return 1;
-                }
+                } else{
 
-                // Generamos la contraseña
-                const newPassword = password_generator.generate({
-                    length: 15,
-                    numbers: true
-                });
+                    // Generamos la contraseña
+                    const newPassword = password_generator.generate({
+                        length: 15,
+                        numbers: true
+                    });
 
-                // Ciframos la contraseña
-                const hashedPassword = await encryptPasswd(newPassword);
+                    // Ciframos la contraseña
+                    const hashedPassword = await encryptPasswd(newPassword);
 
-                return {
+                    // Agregamos al estudiante a nuestro arreglo de registros
+                    newStudents.push({
 
-                    nombre,
-                    apellido,
-                    codigo,
-                    email,
-                    password: hashedPassword,
-                    noHashPassword: newPassword,
-                    tipo: 'Estudiante',
-                    semestre,
-                    rol_id: 2
+                        nombre,
+                        apellido,
+                        codigo,
+                        email,
+                        password: hashedPassword,
+                        noHashPassword: newPassword,
+                        tipo: 'Estudiante',
+                        semestre,
+                        rol_id: 2
+
+                    });
+
+                    // Agregamos la inscripción a nuestro array de inscripciones
+                    inscripcionesData.push({
+                        fecha_inscripcion: new Date(dayjs().format('YYYY-MM-DD HH:mm')),
+                        usuario_id: null,
+                        convocatoria_id: convocatoria.id
+                    });
 
                 }
                 
 
-            }); 
+            }
 
-            const estudiantes = Promise.all(promiseStudents);
+    
+            // Ahora obtenemos los datos a ingresar de los nuevos ingresados
+            const secured_students = newStudents.map( (student) => {
 
-            // Filtramos a los estudiantes nuevos
-            const newStudents = (await estudiantes).filter(student => student !== 1);
-
-            // Ahora hasheamos la contraseña de los nuevos ingresados
-            const secured_students = await Promise.all(
-                
-                newStudents.map( async (student) => {
-
-                    const { noHashPassword, ...rest } = student;
+                const { noHashPassword, ...rest } = student;
                     
-                    return rest;
+                return rest;
 
-                })
+            });
 
-            );
-            
-            
             // Registramos a los estudiantes nuevos
             const created_students = await Usuario.bulkCreate(secured_students, { returning: true, transaction: t });
 
-            // Generamos la inscripción, contraseña y enviamos correo de registro
+            // Actualizamos el valor de las inscripciones a cada uno de los usuarios registrados
+            for (let i = 0; i < created_students.length; i++) {
+                inscripcionesData[i].usuario_id = created_students[i].id;
+            }
+
+            // Creamos las inscripciones
+            await Inscripcion.bulkCreate(inscripcionesData, { transaction: t });
+
+            // Enviamos correo de registro para cada uno de los usuarios registrados
             for (let i = 0; i < created_students.length; i++) {
 
                 const student = created_students[i];
-
-                // Creamos la inscripción a la convocatoria
-                await Inscripcion.create({
-                    fecha_inscripcion: new Date(dayjs().format('YYYY-MM-DD HH:mm')),
-                    usuario_id: student.id,
-                    convocatoria_id: convocatoria.id
-                }, {transaction: t});
 
                 // Enviamos correo de confirmación de registro
                 await generateCorreo(`${student.nombre} ${student.apellido}`, student.email, newStudents[i].noHashPassword, 'Registro', convocatoria.nombre);
                 
             }
 
-            return created_students;
+            return inscripcionesData;
+            
+        }); 
 
-        });
-
-        res.status(200).json({ message: `Se han registrado y/o notificado ${result.length} estudiantes satisfactoriamente para la convocatoria` });
+        res.status(200).json({ message: `Se han registrado y/o notificado a ${result.length} estudiantes satisfactoriamente para la convocatoria` });
 
     } catch (err) {
-        console.log(err);
         next(new Error(`Ocurrio un problema al intentar crear la convocatoria: ${err.message}`));
     }
 
