@@ -11,11 +11,12 @@ export function validarFechaCoherente(fecha_inicio, fecha_fin) {
 
     // Zona horaria a trabajar
     const zonaHoraria = 'America/Bogota';
+    const format = 'DD-MM-YYYY HH:mm';
 
     // Fechas a comparar
-    const fechaActual = moment().tz(zonaHoraria);
-    const fecha_inicio_format = moment(fecha_inicio);
-    const fecha_fin_format = moment(fecha_fin);
+    const fechaActual = moment().tz(zonaHoraria, format);
+    const fecha_inicio_format = moment(fecha_inicio, format);
+    const fecha_fin_format = moment(fecha_fin, format);
 
     console.log('Fecha inicio', fecha_inicio);
     console.log('Fecha Fin', fecha_fin);
