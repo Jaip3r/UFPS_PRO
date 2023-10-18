@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import moment from 'moment';
 
 /**
  * Función encargada de validar la coherencia de las fechas manejadas por el software
@@ -10,19 +10,12 @@ export function validarFechaCoherente(fecha_inicio, fecha_fin) {
 
 
     // Zona horaria a trabajar
-    const format = 'DD-MM-YYYY HH:mm';
+    const format = 'YYYY-MM-DD HH:mm';
 
     // Fechas a comparar
-    const fechaActual = dayjs();
-    const fecha_inicio_format = dayjs(fecha_inicio, format);
-    const fecha_fin_format = dayjs(fecha_fin, format);
-
-    console.log('Fecha inicio', fecha_inicio);
-    console.log('Fecha Fin', fecha_fin);
-
-    console.log(fechaActual);
-    console.log(fecha_inicio_format);
-    console.log(fecha_fin_format);
+    const fechaActual = moment().local();
+    const fecha_inicio_format = moment(fecha_inicio, format).local();
+    const fecha_fin_format = moment(fecha_fin, format).local();
 
     if (fecha_inicio_format.isBefore(fechaActual)) {
         return 'La fecha de inicio de la convocatoria no es coherente';
@@ -32,7 +25,7 @@ export function validarFechaCoherente(fecha_inicio, fecha_fin) {
         return 'La fecha de fin de la convocatoria no es coherente';
     }
 
-    if(!fecha_inicio_format.isBefore(fecha_fin_format)) {
+    if(fecha_inicio_format.isSameOrAfter(fecha_fin_format)) {
         return 'La fecha de inicio de la convocatoria no puede ser mayor o igual que la de fin';
     }
   
