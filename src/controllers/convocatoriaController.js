@@ -40,8 +40,8 @@ const getConvocatorias = async (req, res, next) => {
 
             return {
                 ...convocatoria,
-                fecha_inicio: moment(fecha_inicio, 'DD-MM-YYYY HH:mm').local(),
-                fecha_fin: moment(fecha_fin, 'DD-MM-YYYY HH:mm').local()
+                fecha_inicio: moment(convocatoria.fecha_inicio, 'DD-MM-YYYY HH:mm').local(),
+                fecha_fin: moment(convocatoria.fecha_fin, 'DD-MM-YYYY HH:mm').local()
             }
 
         });
