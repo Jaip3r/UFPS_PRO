@@ -10,6 +10,7 @@ import XLSX from "xlsx";
 import { Op } from 'sequelize';
 import { validarFechaCoherente } from '../util/validarFechaCoherente.js';
 import dayjs from 'dayjs';
+import moment from 'moment';
 
 
 /* --------- getConvocatorias function -------------- */
@@ -27,11 +28,26 @@ const getConvocatorias = async (req, res, next) => {
             where: {
                 estado: state
             },
-            order: [['fecha_fin', 'DESC']]
+            order: [['fecha_fin', 'DESC']],
+            include: {
+                model: Prueba,
+                attributes: ['nombre']
+            }
+        });
+
+        // Formateamos las fechas de inicio y fin para su visualización en la interfaz
+        const formatedConvocatorias = convocatorias.map(convocatoria => {
+
+            return {
+                ...convocatoria,
+                fecha_inicio: moment(fecha_inicio, 'DD-MM-YYYY HH:mm').local(),
+                fecha_fin: moment(fecha_fin, 'DD-MM-YYYY HH:mm').local()
+            }
+
         });
 
         // Respondemos al usuario
-        res.status(200).json(convocatorias);
+        res.status(200).json(formatedConvocatorias);
 
     } catch (error) {
         next(new Error(`Ocurrio un problema al obtener las convocatorias: ${error.message}`));
@@ -53,12 +69,22 @@ const getConvocatoriaById = async (req, res, next) => {
         const convocatoria = await Convocatoria.findByPk(id, {
             include: {
                 model: Prueba,
-                attributes: ['nombre']
+                attributes: ['id', 'nombre']
             }
         });
 
         // Respondemos al usuario
-        res.status(200).json(convocatoria);
+        res.status(200).json({
+            nombre: convocatoria.nombre,
+            descripcion: convocatoria.descripcion,
+            fecha_inicio: moment(convocatoria.fecha_inicio, 'DD-MM-YYYY HH:mm').local(),
+            fecha_fin: moment(convocatoria.fecha_fin, 'DD-MM-YYYY HH:mm').local(),
+            estado: convocatoria.estado,
+            prueba: {
+                id: convocatoria.prueba.id,
+                nombre: convocatoria.prueba.nombre
+            }
+        });
 
     } catch (error) {
         next(new Error(`Ocurrio un problema al intentar añadir el estudiante: ${error.message}`));
@@ -213,7 +239,8 @@ const createConvocatoria = async (req, res, next) => {
                     // Generamos la contraseña
                     const newPassword = password_generator.generate({
                         length: 15,
-                        numbers: true
+                        numbers: true,
+                        symbols: true
                     });
 
                     // Ciframos la contraseña
@@ -255,11 +282,11 @@ const createConvocatoria = async (req, res, next) => {
                 return rest;
 
             });
-            console.log(secured_students);
+            
 
             // Registramos a los estudiantes nuevos
             const created_students = await Usuario.bulkCreate(secured_students, { returning: true, transaction: t });
-            console.log(created_students);
+            
 
             // Actualizamos el valor de las inscripciones a cada uno de los usuarios registrados
             for (let i = 0; i < created_students.length; i++) {
@@ -289,7 +316,6 @@ const createConvocatoria = async (req, res, next) => {
         res.status(200).json({ message: `Se han inscrito ${result.length} estudiantes satisfactoriamente para la convocatoria` });
 
     } catch (err) {
-        console.log(err);
         next(new Error(`Ocurrio un problema al intentar crear la convocatoria: ${err.message}`));
     }
 
@@ -392,7 +418,7 @@ const updateConvocatoria = async (req, res, next) => {
     const { id } = req.params;
 
     // Obtenemos los datos a actualizar
-    const { nombre, prueba_id, descripcion, fecha_inicio, fecha_fin } = req.body;
+    const { nombre, prueba_id, descripcion, fecha_inicio, fecha_fin, estado } = req.body;
 
     try {
 
@@ -413,6 +439,11 @@ const updateConvocatoria = async (req, res, next) => {
 
 
         // Validamos que la fechas sean coherentes
+        const inicioValido = moment(fecha_inicio, 'YYYY-MM-DD HH:mm', true).isValid();
+        const finValido = moment(fecha_fin, 'YYYY-MM-DD HH:mm', true).isValid();
+
+        if (!inicioValido || !finValido) return res.status(400).json({ error: 'Las fechas proporcionadas no poseen un formato valido' });
+
         const error_fecha = validarFechaCoherente(new Date(fecha_inicio), new Date(fecha_fin));
 
         if (error_fecha) {
@@ -424,6 +455,7 @@ const updateConvocatoria = async (req, res, next) => {
         await convocatoria.update({
             nombre,
             descripcion,
+            estado,
             fecha_inicio: new Date(dayjs(fecha_inicio).format('YYYY-MM-DD HH:mm')),
             fecha_fin: new Date(dayjs(fecha_fin).format('YYYY-MM-DD HH:mm')),
             prueba_id

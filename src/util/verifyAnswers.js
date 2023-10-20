@@ -41,7 +41,7 @@ export function posicionEnAlfabeto(letra) {
 
 
 /**
- * 
+ * Función encargada de remover las preguntas duplicadas de las preguntas a insertar
  * @param {object} questions 
  * @returns array with all unique answers
  */

@@ -193,6 +193,13 @@ const createQuestions = async (req, res, next) => {
 
             }
 
+            // Validamos la opción de respuesta
+            const regexAnswer = /^[a-zA-Z]{1}$/;
+            if(!regexAnswer.test(itemFila['Respuesta'])){
+                res.status(400);
+                throw new Error('La respuesta a la pregunta debe corresponder a una de las opciones disponibles');
+            }
+
 
             // Obtenemos las opciones de respuesta
             const options = Object.keys(itemFila).filter(key => /^[A-Z]$/i.test(key));
@@ -262,13 +269,10 @@ const createQuestions = async (req, res, next) => {
         });
 
 
-        // eliminamos los valores nulos del array (repetidos)
-        const filteredBDQuestions = newQuestions.filter(Boolean);
-
         // Aseguramos que no existan repetidos dentro del array de preguntas
         let finalQuestions = [];
 
-        if (filteredBDQuestions.length > 0) finalQuestions = removeQuestionsRepeat(filteredBDQuestions);
+        if (newQuestions.length > 0) finalQuestions = removeQuestionsRepeat(newQuestions);
 
         // Insertamos todas las preguntas unicas a la vez
         await Pregunta.bulkCreate(finalQuestions);
