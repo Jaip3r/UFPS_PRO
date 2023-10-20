@@ -41,8 +41,8 @@ const getConvocatorias = async (req, res, next) => {
             return {
                 id: convocatoria.id,
                 nombre: convocatoria.nombre,
-                fecha_inicio: moment(convocatoria.fecha_inicio, 'DD-MM-YYYY HH:mm').local(),
-                fecha_fin: moment(convocatoria.fecha_fin, 'DD-MM-YYYY HH:mm').local(),
+                fecha_inicio: moment(convocatoria.fecha_inicio).local().format('DD-MM-YYYY HH:mm'),
+                fecha_fin: moment(convocatoria.fecha_fin).local().format('DD-MM-YYYY HH:mm'),
                 estado: convocatoria.estado,
                 prueba: convocatoria.prueba
             }
