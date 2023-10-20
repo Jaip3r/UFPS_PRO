@@ -39,9 +39,12 @@ const getConvocatorias = async (req, res, next) => {
         const formatedConvocatorias = convocatorias.map(convocatoria => {
 
             return {
-                ...convocatoria,
+                id: convocatoria.id,
+                nombre: convocatoria.nombre,
                 fecha_inicio: moment(convocatoria.fecha_inicio, 'DD-MM-YYYY HH:mm').local(),
-                fecha_fin: moment(convocatoria.fecha_fin, 'DD-MM-YYYY HH:mm').local()
+                fecha_fin: moment(convocatoria.fecha_fin, 'DD-MM-YYYY HH:mm').local(),
+                estado: convocatoria.estado,
+                prueba: convocatoria.prueba
             }
 
         });
