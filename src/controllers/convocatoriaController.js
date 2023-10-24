@@ -218,24 +218,40 @@ const createConvocatoria = async (req, res, next) => {
                 if (exists) {
 
                     // Obtenemos el usuario ya registrado
-                    const userExist = await Usuario.findOne({
-                        where: {
-                            [Op.or]: {
-                                codigo,
-                                email
+                    const [ userExist, inscripcionExist ] = await Promise.all([
+
+                        Usuario.findOne({
+                            where: {
+                                [Op.or]: {
+                                    codigo,
+                                    email
+                                }
                             }
-                        }
-                    });
+                        }),
+                        Inscripcion.findOne({
+                            where: {
+                                usuario_id: userExist.id,
+                                convocatoria_id: convocatoria.id
+                            }
+                        })
 
-                    // Agregamos la inscripción a nuestro array de inscripciones
-                    existInscripcionesData.push({
-                        fecha_inscripcion: new Date(dayjs().format('YYYY-MM-DD HH:mm')),
-                        usuario_id: userExist.id,
-                        convocatoria_id: convocatoria.id
-                    });
+                    ])
 
-                    // Enviamos correo de notificacion
-                    await generateCorreo(`${nombre} ${apellido}`, email, '', 'Notificar', convocatoria.nombre);
+
+                    // Verificamos que el usuario ya registrado no contenga una inscripción a la prueba
+                    if (!inscripcionExist){
+
+                        // Agregamos la inscripción a nuestro array de inscripciones
+                        existInscripcionesData.push({
+                            fecha_inscripcion: new Date(dayjs().format('YYYY-MM-DD HH:mm')),
+                            usuario_id: userExist.id,
+                            convocatoria_id: convocatoria.id
+                        });
+
+                        // Enviamos correo de notificacion
+                        await generateCorreo(`${nombre} ${apellido}`, email, '', 'Notificar', convocatoria.nombre);
+
+                    }
 
                 } else{
 
@@ -421,21 +437,22 @@ const updateConvocatoria = async (req, res, next) => {
     const { id } = req.params;
 
     // Obtenemos los datos a actualizar
-    const { nombre, prueba_id, descripcion, fecha_inicio, fecha_fin, estado } = req.body;
+    const { nombre, prueba_id, descripcion, fecha_inicio, fecha_fin } = req.body;
 
     try {
 
-        // Obtenemos la convocatoria
-        const convocatoria = await Convocatoria.findByPk(id);
-
+        // Obtenemos la convocatoria y la prueba
+        const [ convocatoria, existPrueba ] = await Promise.all([
+            Convocatoria.findByPk(id),
+            Prueba.findByPk(prueba_id)
+        ])
+        
         //Verificamos que exista la convocatoria
         if (!convocatoria) {
             return res.status(400).json({ error: 'No se encuentra ninguna convocatoria con el id especificado' });
         }
 
         // Validamos que exista la prueba enlazada a la convocatoria
-        const existPrueba = await Prueba.findByPk(prueba_id);
-
         if (!existPrueba) {
             return res.status(400).json({ error: 'No existe ninguna prueba con el id especificado' })
         }
@@ -458,7 +475,6 @@ const updateConvocatoria = async (req, res, next) => {
         await convocatoria.update({
             nombre,
             descripcion,
-            estado,
             fecha_inicio: new Date(dayjs(fecha_inicio).format('YYYY-MM-DD HH:mm')),
             fecha_fin: new Date(dayjs(fecha_fin).format('YYYY-MM-DD HH:mm')),
             prueba_id
