@@ -218,27 +218,23 @@ const createConvocatoria = async (req, res, next) => {
                 if (exists) {
 
                     // Obtenemos el usuario ya registrado
-                    const [ userExist, inscripcionExist ] = await Promise.all([
-
-                        Usuario.findOne({
-                            where: {
-                                [Op.or]: {
-                                    codigo,
-                                    email
-                                }
+                    const userExist = await Usuario.findOne({
+                        where: {
+                            [Op.or]: {
+                                codigo,
+                                email
                             }
-                        }),
-                        Inscripcion.findOne({
-                            where: {
-                                usuario_id: userExist.id,
-                                convocatoria_id: convocatoria.id
-                            }
-                        })
-
-                    ])
-
+                        }
+                    })
 
                     // Verificamos que el usuario ya registrado no contenga una inscripción a la prueba
+                    const inscripcionExist = await Inscripcion.findOne({
+                        where: {
+                            usuario_id: userExist.id,
+                            convocatoria_id: convocatoria.id
+                        }
+                    })
+
                     if (!inscripcionExist){
 
                         // Agregamos la inscripción a nuestro array de inscripciones
