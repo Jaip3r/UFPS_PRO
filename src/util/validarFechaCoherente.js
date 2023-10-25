@@ -14,8 +14,8 @@ export function validarFechaCoherente(fecha_inicio, fecha_fin) {
 
     // Fechas a comparar
     const fechaActual = moment().tz('America/Bogota');
-    const fecha_inicio_format = moment(fecha_inicio, format).local();
-    const fecha_fin_format = moment(fecha_fin, format).local();
+    const fecha_inicio_format = moment(fecha_inicio, format).tz('America/Bogota');
+    const fecha_fin_format = moment(fecha_fin, format).tz('America/Bogota');
     console.log(fechaActual, fecha_inicio_format, fecha_fin_format);
 
     if (fecha_inicio_format.isBefore(fechaActual)) {
