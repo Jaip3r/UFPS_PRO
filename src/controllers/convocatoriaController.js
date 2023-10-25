@@ -495,11 +495,15 @@ const getConvocatoriasEstudiante = async (req, res) => {
             },
             include: {
                 model: Convocatoria,
-                attributes: ['id', 'nombre', 'descripcion', 'fecha_inicio', 'fecha_fin']
+                attributes: ['id', 'nombre', 'descripcion', 'fecha_inicio', 'fecha_fin'],
+                include: {
+                    model: Prueba,
+                    attributes: ['id', 'nombre', 'duracion', 'semestre', 'total_preguntas']
+                }
             }
         });
 
-        
+    
         // Obtenemos los estudiantes a partir de sus inscripciones
         const convocatorias = inscripciones.map(inscripcion => inscripcion.convocatoria);
 

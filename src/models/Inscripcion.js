@@ -41,6 +41,10 @@ const Inscripcion = sequelize.define('inscripciones', {
             }
         }
     },
+    estado: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
     usuario_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
