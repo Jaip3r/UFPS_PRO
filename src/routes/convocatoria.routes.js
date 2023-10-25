@@ -51,21 +51,29 @@ router.post('/create', [
 router.put('/update/:id', [ extractToken, verifyJWT, isAdmin, validateConvocatoriaData], convocatoriaController.updateConvocatoria);
 
 
-// @desc Endpoint encargado de la presentación de la prueba asociada a la convocatoria
-// @route PUT /api/convocatoria/:id/presentarPrueba
-// @access public
-router.post('/:id/presentarPrueba', [ extractToken, verifyJWT ], convocatoriaController.presentarPrueba);
-
-
 // @desc Endpoint encargado de la obtención de todos los estudiantes asociados a una convocatoria
-// @route PUT /api/convocatoria/:id/getEstudiantes
+// @route GET /api/convocatoria/:id/getEstudiantes
 // @access solo Admin
 router.get('/:id/getEstudiantes', [ extractToken, verifyJWT, isAdmin ], convocatoriaController.getEstudiantesConvocatoria);
 
 
 // @desc Endpoint encargado de la obtención de todos las preguntas asociadas a la prueba de una convocatoria
-// @route PUT /api/convocatoria/:id/getPreguntas
+// @route GET /api/convocatoria/:id/getPreguntas
 // @access solo Admin
 router.get('/:id/getPreguntas', [ extractToken, verifyJWT, isAdmin ], convocatoriaController.getPreguntasConvocatoria);
+
+
+// ########### Estudiante ################
+
+// @desc Endpoint encargado de la presentación de la prueba asociada a la convocatoria
+// @route POST /api/convocatoria/:id/presentarPrueba
+// @access public
+router.post('/:id/presentarPrueba', [ extractToken, verifyJWT ], convocatoriaController.presentarPrueba);
+
+
+// @desc Endpoint encargado de la obtención de todas las convocatorias activas asociadas a un estudiante
+// @route GET /api/convocatoria/estudiante
+// @access public
+router.post('/estudiante', [ extractToken, verifyJWT ], convocatoriaController.presentarPrueba);
 
 export default router;

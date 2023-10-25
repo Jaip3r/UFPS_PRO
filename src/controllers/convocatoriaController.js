@@ -13,6 +13,8 @@ import dayjs from 'dayjs';
 import moment from 'moment';
 
 
+// ########## ADMIN ####################### 
+
 /* --------- getConvocatorias function -------------- */
 
 const getConvocatorias = async (req, res, next) => {
@@ -337,6 +339,179 @@ const createConvocatoria = async (req, res, next) => {
 };
 
 
+/* --------- updateConvocatoria function -------------- */
+
+const updateConvocatoria = async (req, res, next) => {
+
+    //Obtenemos el id
+    const { id } = req.params;
+
+    // Obtenemos los datos a actualizar
+    const { nombre, prueba_id, descripcion, fecha_inicio, fecha_fin } = req.body;
+
+    try {
+
+        // Obtenemos la convocatoria y la prueba
+        const [ convocatoria, existPrueba ] = await Promise.all([
+            Convocatoria.findByPk(id),
+            Prueba.findByPk(prueba_id)
+        ])
+        
+        //Verificamos que exista la convocatoria
+        if (!convocatoria) {
+            return res.status(400).json({ error: 'No se encuentra ninguna convocatoria con el id especificado' });
+        }
+
+        // Validamos que exista la prueba enlazada a la convocatoria
+        if (!existPrueba) {
+            return res.status(400).json({ error: 'No existe ninguna prueba con el id especificado' })
+        }
+
+
+        // Validamos que la fechas sean coherentes
+        const inicioValido = moment(fecha_inicio, 'YYYY-MM-DD HH:mm', true).isValid();
+        const finValido = moment(fecha_fin, 'YYYY-MM-DD HH:mm', true).isValid();
+
+        if (!inicioValido || !finValido) return res.status(400).json({ error: 'Las fechas proporcionadas no poseen un formato valido' });
+
+        const error_fecha = validarFechaCoherente(new Date(fecha_inicio), new Date(fecha_fin));
+
+        if (error_fecha) {
+            return res.status(400).json({ error: error_fecha });
+        }
+
+
+        //Actualizamos la convocatoria
+        await convocatoria.update({
+            nombre,
+            descripcion,
+            fecha_inicio: new Date(dayjs(fecha_inicio).format('YYYY-MM-DD HH:mm')),
+            fecha_fin: new Date(dayjs(fecha_fin).format('YYYY-MM-DD HH:mm')),
+            prueba_id
+        })
+
+        res.status(200).json('Convocatoria actualizada correctamente');
+
+    } catch (err) {
+        return res.status(500).json({ error: `Error al actualizar la convocatoria: ${err.message}` });
+    }
+
+}
+
+
+/* --------- getEstudiantesConvocatoria function -------------- */
+
+const getEstudiantesConvocatoria = async (req, res) => {
+
+    // Obtenemos el id de la convocatoria
+    const {id} = req.params;
+
+    try{
+
+        // Consultamos la convocatoria y verificamos su existencia
+        const convocatoria = await Convocatoria.findByPk(id);
+
+        if(!convocatoria){
+            return res.status(400).json({ error: 'No se encuentra la convocatoria especificada' });
+        }
+
+        // Obtenemos las inscripciones asociadas 
+        const inscripciones = await convocatoria.getInscripciones();
+
+        if(!inscripciones){
+            return res.status(400).json({ error: 'No se encontraron estudiantes registrados a esta convocatoria' });
+        }
+        
+        // Obtenemos los estudiantes a partir de sus inscripciones
+        const estudiantesPromise = inscripciones.map(async (inscripcion) => await inscripcion.getUsuario());
+
+        const estudiantes = await Promise.all(estudiantesPromise);
+
+        return res.status(200).json(estudiantes);
+
+    }catch(error){
+        return res.status(500).json({error: `Error al obtener los estudiantes de la convocatoria: ${error.message}`});
+    }
+
+}
+
+
+/* --------- getPreguntasConvocatoria function -------------- */
+
+const getPreguntasConvocatoria = async (req, res) => {
+
+    try{
+
+        // Obtenemos el id de la convocatoria
+        const {id} = req.params;
+
+        // Verificamos el id de entrada
+        const regexId = /^[0-9]+$/; // Expresión regular que controla solo la admición de numeros
+
+        if (!regexId.test(id)) {
+            return res.status(400).json({ error: 'id no valido' });
+        }
+
+        // Consultamos la convocatoria y verificamos su existencia
+        const convocatoria = await Convocatoria.findByPk(id);
+
+        if(!convocatoria){
+            return res.status(400).json({ error: 'No se encuentra la convocatoria especificada' });
+        }
+
+        // Obtenemos la prueba asociada a la convocatoria
+        const prueba = await convocatoria.getPrueba();
+
+        // Obtenemos las preguntas a partir de la prueba
+        const preguntas = await Prueba.findAll({
+            
+        });
+
+        return res.status(200).json(preguntas);
+
+    }catch(error){
+        return res.status(500).json({error: `Error al obtener las preguntas asociadas a la prueba de la convocatoria: ${error.message}`});
+    }
+
+}
+
+
+// ########## Estudiante #######################
+
+/* --------- getConvocatoriasEstudiante function -------------- */
+
+const getConvocatoriasEstudiante = async (req, res) => {
+
+    // Obtenemos el id de la convocatoria
+    const { id } = req.user;
+
+    try{
+
+        // Consultamos las inscripciones actuales del estudiante
+        const inscripciones = await Inscripcion.findAll({
+            where: {
+                usuario_id: id,
+                estado: 1
+            },
+            include: {
+                model: Convocatoria,
+                attributes: ['id', 'nombre', 'descripcion', 'fecha_inicio', 'fecha_fin']
+            }
+        });
+
+        
+        // Obtenemos los estudiantes a partir de sus inscripciones
+        const convocatorias = inscripciones.map(inscripcion => inscripcion.convocatoria);
+
+        return res.status(200).json(convocatorias);
+
+    }catch(error){
+        return res.status(500).json({error: `Error al obtener las convocatoria del estudiante: ${error.message}`});
+    }
+
+}
+
+
 /** -------- presentarPrueba function ----------------- */
 
 const presentarPrueba = async (req, res) => {
@@ -425,149 +600,6 @@ const presentarPrueba = async (req, res) => {
 };
 
 
-/* --------- updateConvocatoria function -------------- */
-
-const updateConvocatoria = async (req, res, next) => {
-
-    //Obtenemos el id
-    const { id } = req.params;
-
-    // Obtenemos los datos a actualizar
-    const { nombre, prueba_id, descripcion, fecha_inicio, fecha_fin } = req.body;
-
-    try {
-
-        // Obtenemos la convocatoria y la prueba
-        const [ convocatoria, existPrueba ] = await Promise.all([
-            Convocatoria.findByPk(id),
-            Prueba.findByPk(prueba_id)
-        ])
-        
-        //Verificamos que exista la convocatoria
-        if (!convocatoria) {
-            return res.status(400).json({ error: 'No se encuentra ninguna convocatoria con el id especificado' });
-        }
-
-        // Validamos que exista la prueba enlazada a la convocatoria
-        if (!existPrueba) {
-            return res.status(400).json({ error: 'No existe ninguna prueba con el id especificado' })
-        }
-
-
-        // Validamos que la fechas sean coherentes
-        const inicioValido = moment(fecha_inicio, 'YYYY-MM-DD HH:mm', true).isValid();
-        const finValido = moment(fecha_fin, 'YYYY-MM-DD HH:mm', true).isValid();
-
-        if (!inicioValido || !finValido) return res.status(400).json({ error: 'Las fechas proporcionadas no poseen un formato valido' });
-
-        const error_fecha = validarFechaCoherente(new Date(fecha_inicio), new Date(fecha_fin));
-
-        if (error_fecha) {
-            return res.status(400).json({ error: error_fecha });
-        }
-
-
-        //Actualizamos la convocatoria
-        await convocatoria.update({
-            nombre,
-            descripcion,
-            fecha_inicio: new Date(dayjs(fecha_inicio).format('YYYY-MM-DD HH:mm')),
-            fecha_fin: new Date(dayjs(fecha_fin).format('YYYY-MM-DD HH:mm')),
-            prueba_id
-        })
-
-        res.status(200).json('Convocatoria actualizada correctamente');
-
-    } catch (err) {
-        return res.status(500).json({ error: `Error al actualizar la convocatoria: ${err.message}` });
-    }
-
-}
-
-
-/* --------- getEstudiantesConvocatoria function -------------- */
-
-const getEstudiantesConvocatoria = async (req, res) => {
-
-    try{
-
-        // Obtenemos el id de la convocatoria
-        const {id} = req.params;
-
-        // Verificamos el id de entrada
-        const regexId = /^[0-9]+$/; // Expresión regular que controla solo la admición de numeros
-
-        if (!regexId.test(id)) {
-            return res.status(400).json({ error: 'id no valido' });
-        }
-
-        // Consultamos la convocatoria y verificamos su existencia
-        const convocatoria = await Convocatoria.findByPk(id);
-
-        if(!convocatoria){
-            return res.status(400).json({ error: 'No se encuentra la convocatoria especificada' });
-        }
-
-        // Obtenemos las inscripciones asociadas 
-        const inscripciones = await convocatoria.getInscripciones();
-
-        if(!inscripciones){
-            return res.status(400).json({ error: 'No se encontraron estudiantes registrados a esta convocatoria' });
-        }
-        
-        // Obtenemos los estudiantes a partir de sus inscripciones
-        const estudiantesPromise = inscripciones.map(async (inscripcion) => await inscripcion.getUsuario());
-
-        const estudiantes = await Promise.all(estudiantesPromise);
-
-        return res.status(200).json(estudiantes);
-
-    }catch(error){
-        console.log(error)
-        return res.status(500).json({error: `Error al obtener los estudiantes de la convocatoria: ${error.message}`});
-    }
-
-}
-
-
-/* --------- getPreguntasConvocatoria function -------------- */
-
-const getPreguntasConvocatoria = async (req, res) => {
-
-    try{
-
-        // Obtenemos el id de la convocatoria
-        const {id} = req.params;
-
-        // Verificamos el id de entrada
-        const regexId = /^[0-9]+$/; // Expresión regular que controla solo la admición de numeros
-
-        if (!regexId.test(id)) {
-            return res.status(400).json({ error: 'id no valido' });
-        }
-
-        // Consultamos la convocatoria y verificamos su existencia
-        const convocatoria = await Convocatoria.findByPk(id);
-
-        if(!convocatoria){
-            return res.status(400).json({ error: 'No se encuentra la convocatoria especificada' });
-        }
-
-        // Obtenemos la prueba asociada a la convocatoria
-        const prueba = await convocatoria.getPrueba();
-
-        // Obtenemos las preguntas a partir de la prueba
-        const preguntas = await Prueba.findAll({
-            
-        });
-
-        return res.status(200).json(preguntas);
-
-    }catch(error){
-        return res.status(500).json({error: `Error al obtener las preguntas asociadas a la prueba de la convocatoria: ${error.message}`});
-    }
-
-}
 
 
 const convocatoriaController = {
@@ -578,7 +610,8 @@ const convocatoriaController = {
     updateConvocatoria,
     presentarPrueba,
     getEstudiantesConvocatoria,
-    getPreguntasConvocatoria
+    getPreguntasConvocatoria,
+    getConvocatoriasEstudiante
 
 };
 
