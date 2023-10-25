@@ -482,7 +482,7 @@ const getPreguntasConvocatoria = async (req, res) => {
 
 const getConvocatoriasEstudiante = async (req, res) => {
 
-    // Obtenemos el id de la convocatoria
+    // Obtenemos el id del usuario
     const { id } = req.user;
 
     try{

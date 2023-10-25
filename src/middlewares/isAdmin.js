@@ -13,7 +13,7 @@ const isAdmin = (req, res, next) => {
     }
 
     req.log.warn(`Intento de acceso no autorizado por parte del usuario con identificador: ${req.user.id}`);
-    return res.status(403).json({message: 'Accesso Restringido'});
+    return res.status(403).json({message: 'Acceso Restringido'});
 
 };
 

@@ -67,14 +67,14 @@ router.get('/:id/getPreguntas', [ extractToken, verifyJWT, isAdmin ], convocator
 
 // @desc Endpoint encargado de la presentación de la prueba asociada a la convocatoria
 // @route POST /api/convocatoria/:id/presentarPrueba
-// @access public
+// @access Estudiantes
 router.post('/:id/presentarPrueba', [ extractToken, verifyJWT ], convocatoriaController.presentarPrueba);
 
 
 // @desc Endpoint encargado de la obtención de todas las convocatorias activas asociadas a un estudiante
-// @route GET /api/convocatoria/estudiante
-// @access public
-router.get('/estudiante', [ extractToken, verifyJWT ], convocatoriaController.getConvocatoriasEstudiante);
+// @route GET /api/convocatoria/obtenerConvocatorias/estudiante
+// @access Estudiantes
+router.get('/obtenerConvocatorias/estudiante', [ extractToken, verifyJWT ], convocatoriaController.getConvocatoriasEstudiante);
 
 
 export default router;
