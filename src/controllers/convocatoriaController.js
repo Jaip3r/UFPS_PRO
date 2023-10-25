@@ -498,14 +498,27 @@ const getConvocatoriasEstudiante = async (req, res) => {
                 attributes: ['id', 'nombre', 'descripcion', 'fecha_inicio', 'fecha_fin'],
                 include: {
                     model: Prueba,
-                    attributes: ['id', 'nombre', 'duracion', 'semestre', 'total_preguntas']
+                    attributes: ['id', 'nombre', 'duracion', 'descripcion', 'semestre', 'total_preguntas']
                 }
             }
         });
 
     
         // Obtenemos los estudiantes a partir de sus inscripciones
-        const convocatorias = inscripciones.map(inscripcion => inscripcion.convocatoria);
+        const convocatorias = inscripciones.map(inscripcion => {
+            
+            const { id, nombre, descripcion, fecha_inicio, fecha_fin, prueba } = inscripcion.convocatoria;
+
+            return {
+                id,
+                nombre,
+                descripcion,
+                fecha_inicio: moment(fecha_inicio).local().format('DD-MM-YYYY HH:mm'),
+                fecha_fin: moment(fecha_fin).local().format('DD-MM-YYYY HH:mm'),
+                prueba
+            }
+            
+        });
 
         return res.status(200).json(convocatorias);
 
