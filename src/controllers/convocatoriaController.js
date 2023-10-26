@@ -409,7 +409,9 @@ const getEstudiantesConvocatoria = async (req, res) => {
     try{
 
         // Consultamos la convocatoria y verificamos su existencia
-        const convocatoria = await Convocatoria.findByPk(id);
+        const convocatoria = await Convocatoria.findByPk(id, {
+            attributes: ['id']
+        });
 
         if(!convocatoria){
             return res.status(400).json({ error: 'No se encuentra la convocatoria especificada' });
@@ -418,12 +420,22 @@ const getEstudiantesConvocatoria = async (req, res) => {
         // Obtenemos las inscripciones asociadas 
         const inscripciones = await convocatoria.getInscripciones();
 
-        if(!inscripciones){
+        if(inscripciones.length === 0){
             return res.status(400).json({ error: 'No se encontraron estudiantes registrados a esta convocatoria' });
         }
         
         // Obtenemos los estudiantes a partir de sus inscripciones
-        const estudiantesPromise = inscripciones.map(async (inscripcion) => await inscripcion.getUsuario());
+        const estudiantesPromise = inscripciones.map(inscripcion => {
+
+            return inscripcion.getUsuario().then(usuario => ({
+              id: usuario.id,
+              nombre: usuario.nombre,
+              apellido: usuario.apellido,
+              correo: usuario.correo,
+              codigo: usuario.codigo
+            }));
+            
+        });
 
         const estudiantes = await Promise.all(estudiantesPromise);
 

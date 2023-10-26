@@ -20,9 +20,6 @@ export function validarFechaCoherente(fecha_inicio, fecha_fin) {
     const fecha_inicio_col = fecha_inicio_format.add(5, 'hours');
     const fecha_fin_col = fecha_fin_format.add(5, 'hours');
 
-    console.log('Fechas colombia');
-    console.log(fechaActual, fecha_inicio_col, fecha_fin_col);
-
     if (fecha_inicio_col.isBefore(fechaActual)) {
         return 'La fecha de inicio de la convocatoria no es coherente';
     }
