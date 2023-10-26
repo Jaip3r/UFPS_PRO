@@ -63,6 +63,12 @@ router.get('/:id/getEstudiantes', [ extractToken, verifyJWT, isAdmin ], convocat
 router.get('/:id/getPreguntas', [ extractToken, verifyJWT, isAdmin ], convocatoriaController.getPreguntasConvocatoria);
 
 
+// @desc Endpoint encargado de la expulsión de un usuario asociado a una convocatoria especifica
+// @route DELETE /api/convocatoria/:conv_id/ejectStudent/:user_id
+// @access solo Admin
+router.delete('/:conv_id/ejectStudent/:user_id', [ extractToken, verifyJWT, isAdmin ], convocatoriaController.expulsarEstudianteConvocatoria);
+
+
 // ########### Estudiante ################
 
 // @desc Endpoint encargado de la presentación de la prueba asociada a la convocatoria

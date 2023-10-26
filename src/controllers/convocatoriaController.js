@@ -448,6 +448,32 @@ const getEstudiantesConvocatoria = async (req, res) => {
 }
 
 
+/* --------- expulsarEstudianteConvocatoria function -------------- */
+
+const expulsarEstudianteConvocatoria = async (req, res) => {
+
+    // Obtenemos el id del usuario
+    const { user_id, conv_id } = req.params;
+
+    try{
+
+        // Eliminamos la inscripcion de la convocatoria asociada a ese estudiante
+        await Inscripcion.destroy({
+            where: {
+                usuario_id: user_id,
+                convocatoria_id: conv_id
+            }
+        });
+
+        return res.status(200).json({ message: 'Se ha expulsado al estudiante de la convocatoria correctamente' });
+
+    }catch(error){
+        return res.status(500).json({error: `Error al obtener las convocatoria del estudiante: ${error.message}`});
+    }
+
+}
+
+
 /* --------- getPreguntasConvocatoria function -------------- */
 
 const getPreguntasConvocatoria = async (req, res) => {
@@ -640,7 +666,8 @@ const convocatoriaController = {
     presentarPrueba,
     getEstudiantesConvocatoria,
     getPreguntasConvocatoria,
-    getConvocatoriasEstudiante
+    getConvocatoriasEstudiante,
+    expulsarEstudianteConvocatoria
 
 };
 
