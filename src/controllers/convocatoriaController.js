@@ -431,10 +431,10 @@ const getEstudiantesConvocatoria = async (req, res) => {
               id: usuario.id,
               nombre: usuario.nombre,
               apellido: usuario.apellido,
-              correo: usuario.correo,
+              correo: usuario.email,
               codigo: usuario.codigo
             }));
-            
+
         });
 
         const estudiantes = await Promise.all(estudiantesPromise);
