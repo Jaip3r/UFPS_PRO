@@ -150,8 +150,8 @@ const createConvocatoria = async (req, res, next) => {
             const convocatoria = await Convocatoria.create({
                 nombre: convocatoria_nombre,
                 descripcion: convocatoria_descripcion,
-                fecha_inicio: new Date(dayjs(fecha_inicio).format('YYYY-MM-DD HH:mm')),
-                fecha_fin: new Date(dayjs(fecha_fin).format('YYYY-MM-DD HH:mm')),
+                fecha_inicio: new Date(moment(fecha_inicio).format('YYYY-MM-DD HH:mm')),
+                fecha_fin: new Date(moment(fecha_fin).format('YYYY-MM-DD HH:mm')),
                 prueba_id
             }, {transaction: t});
 
