@@ -390,7 +390,6 @@ const userController = {
     getStudents,
     getStudentById,
     updateStudentData,
-    createStudent,
     updateStudentDataDir,
     getDirectors,
     getDirectorById,
