@@ -132,64 +132,6 @@ const updateStudentData = async (req, res, next) => {
 
 // ------------ Métodos para el Director (sobre el estudiante) ------------------
 
-
-/* --------- createStudent function -------------- */
-
-const createStudent =  async (req, res, next) => {
-
-    // Obtenemos los datos de el estudiante a crear
-    const {nombre, apellido, codigo, email, semestre} = req.body; 
-
-    try {
-
-        //Validamos que el código y email sea único
-        const studentExist = await Usuario.findOne({
-            where: {
-                [Op.or]: [
-                    {codigo},
-                    {email}
-                ]
-            }
-        });
-
-        if(studentExist){
-            return res.status(400).json({error: 'El usuario ya se encuentra registrado'});
-        }
-
-        // Generamos la contraseña
-        const password = password_generator.generate({
-            length: 15,
-            numbers: true
-        });
-
-        // Ciframos la contraseña
-        const hashedPassword = await encryptPasswd(password);
-
-        // Creamos el usuario
-        await Usuario.create({
-            nombre,
-            apellido,
-            codigo,
-            email,
-            password: hashedPassword,
-            tipo: 'Estudiante',
-            semestre,
-            rol_id: 2
-        });
-
-        // Enviamos correo de confirmación de registro
-        await generateCorreo(`${nombre} ${apellido}`, email, password, 'Registro', 'Registro de estudiantes');
-
-        // Respondemos al usuario
-        res.status(200).json({ message: 'Usuario creado exitosamente' });
-
-    } catch (error) {
-        next(new Error(`Ocurrio un problema al intentar añadir el estudiante: ${error.message}`));
-    }
-
-};
-
-
 /* --------- updateStudentDir function -------------- */
 
 const updateStudentDataDir = async (req, res, next) => {

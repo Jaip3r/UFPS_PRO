@@ -12,6 +12,7 @@ import fileupload from 'express-fileupload';
 import fileSizeLimiter from '../middlewares/fileSizeLimiter.js';
 import filePayloadExist from '../middlewares/filePayloadExist.js';
 import fileExcelLimiter from '../middlewares/fileExcelLimiter.js';
+import { validateStudentData } from '../schemas/userSchema.js';
 
 // Inicializamos el router
 const router = Router();
@@ -67,6 +68,12 @@ router.get('/:id/getPreguntas', [ extractToken, verifyJWT, isAdmin ], convocator
 // @route DELETE /api/convocatoria/:conv_id/ejectStudent/:user_id
 // @access solo Admin
 router.delete('/:conv_id/ejectStudent/:user_id', [ extractToken, verifyJWT, isAdmin ], convocatoriaController.expulsarEstudianteConvocatoria);
+
+
+// @desc Endpoint encargado de la creación de un nuevo estudiante ligado a una convocatoria
+// @route POST /api/convocatoria/:id/registroEstudiante
+// @access solo Admin
+router.post('/:id/registroEstudiante', [ extractToken, verifyJWT, isAdmin, validateStudentData ], convocatoriaController.createStudent);
 
 
 // ########### Estudiante ################

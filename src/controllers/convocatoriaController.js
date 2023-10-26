@@ -9,7 +9,6 @@ import sequelize from '../database/db.js';
 import XLSX from "xlsx";
 import { Op } from 'sequelize';
 import { validarFechaCoherente } from '../util/validarFechaCoherente.js';
-import dayjs from 'dayjs';
 import moment from 'moment';
 
 
@@ -241,7 +240,7 @@ const createConvocatoria = async (req, res, next) => {
 
                         // Agregamos la inscripción a nuestro array de inscripciones
                         existInscripcionesData.push({
-                            fecha_inscripcion: new Date(dayjs().format('YYYY-MM-DD HH:mm')),
+                            fecha_inscripcion: new Date(moment().format('YYYY-MM-DD HH:mm')),
                             usuario_id: userExist.id,
                             convocatoria_id: convocatoria.id
                         });
@@ -280,7 +279,7 @@ const createConvocatoria = async (req, res, next) => {
 
                     // Agregamos la inscripción a nuestro array de inscripciones
                     newInscripcionesData.push({
-                        fecha_inscripcion: new Date(dayjs().format('YYYY-MM-DD HH:mm')),
+                        fecha_inscripcion: new Date(moment().format('YYYY-MM-DD HH:mm')),
                         usuario_id: null,
                         convocatoria_id: convocatoria.id
                     });
@@ -385,8 +384,8 @@ const updateConvocatoria = async (req, res, next) => {
         await convocatoria.update({
             nombre,
             descripcion,
-            fecha_inicio: new Date(dayjs(fecha_inicio).format('YYYY-MM-DD HH:mm')),
-            fecha_fin: new Date(dayjs(fecha_fin).format('YYYY-MM-DD HH:mm')),
+            fecha_inicio: new Date(moment(fecha_inicio).format('YYYY-MM-DD HH:mm')),
+            fecha_fin: new Date(moment(fecha_fin).format('YYYY-MM-DD HH:mm')),
             prueba_id
         })
 
@@ -512,6 +511,79 @@ const getPreguntasConvocatoria = async (req, res) => {
     }
 
 }
+
+
+/* --------- createStudent function -------------- */
+
+const createStudent =  async (req, res, next) => {
+
+    // Obtenemos el id de la convocatoria
+    const { id } = req.params;
+
+    // Obtenemos los datos de el estudiante a crear
+    const { nombre, apellido, codigo, email, semestre } = req.body; 
+
+    try {
+
+        // Validamos que el código y email sea único
+        const [ studentExist, convocatoria ] = await Promise.all([
+
+            Usuario.findOne({
+                where: {
+                    [Op.or]: [
+                        {codigo},
+                        {email}
+                    ]
+                }
+            }),
+            Convocatoria.findByPk(id)
+
+        ])
+
+        if(studentExist){
+            return res.status(400).json({error: 'El usuario ya se encuentra registrado'});
+        }
+
+        // Generamos la contraseña
+        const password = password_generator.generate({
+            length: 15,
+            numbers: true,
+            symbols: true
+        });
+
+        // Ciframos la contraseña
+        const hashedPassword = await encryptPasswd(password);
+
+        // Creamos el usuario
+        const new_student = await Usuario.create({
+            nombre,
+            apellido,
+            codigo,
+            email,
+            password: hashedPassword,
+            tipo: 'Estudiante',
+            semestre,
+            rol_id: 2
+        });
+
+        // Registramos su inscripcion a la convocatoria
+        await Inscripcion.create({
+            fecha_inscripcion: new Date(moment().format('YYYY-MM-DD HH:mm')),
+            usuario_id: new_student.id,
+            convocatoria_id: convocatoria.id
+        })
+
+        // Enviamos correo de confirmación de registro
+        await generateCorreo(`${nombre} ${apellido}`, email, password, 'Registro', convocatoria.nombre);
+
+        // Respondemos al usuario
+        res.status(200).json({ message: 'Usuario creado exitosamente' });
+
+    } catch (error) {
+        next(new Error(`Ocurrio un problema al intentar añadir el estudiante: ${error.message}`));
+    }
+
+};
 
 
 // ########## Estudiante #######################
@@ -667,7 +739,8 @@ const convocatoriaController = {
     getEstudiantesConvocatoria,
     getPreguntasConvocatoria,
     getConvocatoriasEstudiante,
-    expulsarEstudianteConvocatoria
+    expulsarEstudianteConvocatoria,
+    createStudent
 
 };
 
