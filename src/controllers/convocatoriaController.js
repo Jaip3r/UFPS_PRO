@@ -467,7 +467,7 @@ const expulsarEstudianteConvocatoria = async (req, res) => {
         return res.status(200).json({ message: 'Se ha expulsado al estudiante de la convocatoria correctamente' });
 
     }catch(error){
-        return res.status(500).json({error: `Error al obtener las convocatoria del estudiante: ${error.message}`});
+        return res.status(500).json({error: `Error al intentar desvincular al estudiante de la convocatoria: ${error.message}`});
     }
 
 }

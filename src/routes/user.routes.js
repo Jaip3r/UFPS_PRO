@@ -108,5 +108,11 @@ router.put('/admin/updatePhoto', [limiter, extractToken, verifyJWT, isAdmin, upl
 router.put('/updatePassword', [limiter, extractToken, verifyJWT], userController.updatePassword);
 
 
+// @desc Endpoint encargado de la desvinculación de un estudiante de la plataforma
+// @route DELETE /api/user/deleteStudent/:id
+// @access solo Admin
+router.delete('/deleteStudent/:id', [extractToken, verifyJWT, isAdmin], userController.deleteStudent);
+
+
 // Importamos el router
 export default router;

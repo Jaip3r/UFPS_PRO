@@ -385,6 +385,36 @@ const updatePassword = async (req, res, next) => {
 
 };
 
+
+/* --------- deleteStudent function -------------- */
+
+const deleteStudent = async (req, res, next) => {
+
+    // Obtenemos el identificador del estudiante
+    const { id } = req.params;
+
+    try{
+
+        // Verificamos la existencia del usuario
+        const user = await Usuario.findByPk(id);
+
+        if (!user){
+            return res.status(400).json({error: 'No se encontro al usuario especificado'});
+        }
+
+        if (user.tipo !== 'Estudiante') return res.status(400).json({error: 'Acción no permitida'});
+
+        // Eliminamos la cuenta del usuario
+        await user.destroy();
+
+        res.status(200).json({message: "El usuario ha sido desvinculado de la plataforma correctamente"});
+
+    }catch(error){
+        next(new Error(`Ocurrio un problema al intentar desvincular al estudiante: ${error.message}`));
+    }
+
+};
+
 const userController = { 
 
     getStudents,
@@ -396,7 +426,8 @@ const userController = {
     updateDirector,
     updatePhotoDirector,
     updatePassword,
-    getProfile
+    getProfile,
+    deleteStudent
 
 }
 
